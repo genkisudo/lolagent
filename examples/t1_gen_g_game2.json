@@ -1,0 +1,21 @@
+{
+  "source": "Gol.gg",
+  "source_key": "example-t1-gen-g-game-2",
+  "source_url": "https://gol.gg/example",
+  "series": {
+    "id": "example-t1-gen-g", "team_a": "T1", "team_b": "Gen.G",
+    "competition": "LCK", "match_date": "2026-08-01", "winner": "T1"
+  },
+  "games": [{
+    "id": "example-t1-gen-g-2", "number": 2, "winner": "T1",
+    "team_a_kills": 18, "team_b_kills": 11, "duration_seconds": 2014, "timeline_complete": true,
+    "events": [
+      {"timestamp": "03:11", "team": "T1", "player": "Oner", "event_type": "FIRST_BLOOD", "raw_text": "First Blood"},
+      {"timestamp": "06:14", "team": "T1", "event_type": "DRAGON_SLAIN", "objective_type": "INFERNAL", "raw_text": "Infernal Dragon"},
+      {"timestamp": "11:42", "team": "Gen.G", "event_type": "DRAGON_SLAIN", "objective_type": "MOUNTAIN", "raw_text": "Mountain Dragon"},
+      {"timestamp": "20:08", "team": "T1", "event_type": "BARON_SLAIN", "raw_text": "Baron Nashor"},
+      {"timestamp": "27:20", "team": "T1", "player": "Faker", "event_type": "INHIBITOR_DESTROYED", "lane": "MID", "raw_text": "INHIB MID"},
+      {"timestamp": "31:08", "team": "Gen.G", "event_type": "DRAGON_SLAIN", "objective_type": "ELDER", "raw_text": "Elder Dragon"}
+    ]
+  }]
+}

@@ -1,0 +1,16 @@
+# Runtime evidence store and immutable source captures (can become large and may be restricted).
+data/
+
+# Python build/test artifacts and local environments.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Editor and operating-system files.
+.DS_Store
+.idea/
+.vscode/
