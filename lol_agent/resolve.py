@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date as calendar_date
+
 from .db import connect
 from .models import Answer, Intent
 
@@ -17,11 +19,14 @@ def answer(db_path: str, match: str, intent: Intent, date: str | None = None, co
         return Answer("UNRESOLVED", note="No completed series exactly matched the supplied teams.")
     if len(matches) > 1:
         return Answer("AMBIGUOUS", note="More than one series matches; add match date or competition.")
-    sid, team_a, team_b, _, _, series_winner, source, _ = matches[0]
+    sid, team_a, team_b, _, scheduled_date, series_winner, source, _, status = matches[0]
     title = f"{team_a} vs {team_b}"
+    games = con.execute("SELECT * FROM games WHERE series_id=? AND completed=true ORDER BY game_number", [sid]).fetchall()
+    flag = series_flag(status, scheduled_date, series_winner, games)
+    if flag:
+        return Answer("FLAGGED", title, source=source, confidence="HIGH", note=flag[1], flags=[flag[0]])
     if intent.kind == "unknown":
         return Answer("UNRESOLVED", title, source=source, note="The question is outside the supported deterministic intents.")
-    games = con.execute("SELECT * FROM games WHERE series_id=? AND completed=true ORDER BY game_number", [sid]).fetchall()
     if intent.kind in {"series_winner", "series_score"}:
         if not games:
             return Answer("UNKNOWN", title, source=source, note="No completed games are stored.")
@@ -40,6 +45,20 @@ def answer(db_path: str, match: str, intent: Intent, date: str | None = None, co
     game = chosen[0]
     events = con.execute("SELECT timestamp_display, team, player, event_type, lane, objective_type, raw_text FROM events WHERE game_id=? ORDER BY timestamp_seconds", [game[0]]).fetchall()
     return resolve_game(intent, team_a, team_b, game, events, title, source)
+
+
+def series_flag(status, scheduled_date, winner, completed_games):
+    """Return a stable flag for an explicitly exceptional series state, if any."""
+    normalized_status = (status or "").strip().upper().replace("-", "_").replace(" ", "_")
+    normalized_winner = (winner or "").strip().upper()
+    if normalized_status in {"CANCELED", "CANCELLED"} and not completed_games:
+        return "CANCELED_NOT_PLAYED", "The series was canceled before any completed game was recorded."
+    if normalized_status in {"TIE", "TIED", "DRAW", "DRAWN"} or normalized_winner in {"TIE", "TIED", "DRAW", "DRAWN"}:
+        return "TIED", "The source explicitly records the series as tied; no winner is determined."
+    if normalized_status in {"DELAYED", "POSTPONED"} and not winner and scheduled_date:
+        if (calendar_date.today() - scheduled_date).days > 7:
+            return "DELAYED_OVER_7_DAYS", "The series remains delayed more than seven days after its scheduled date without a winner."
+    return None
 
 
 def resolve_game(intent, team_a, team_b, game, events, title, source):

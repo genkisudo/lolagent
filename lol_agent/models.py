@@ -20,6 +20,7 @@ class Answer:
     source: str | None = None
     confidence: str = "LOW"
     note: str | None = None
+    flags: list[str] = field(default_factory=list)
 
     def render(self) -> str:
         output = [f"Result: {self.result}"]
@@ -33,8 +34,10 @@ class Answer:
             output += ["", f"Note: {self.note}"]
         if self.source:
             output += ["", f"Source: {self.source}"]
+        if self.flags:
+            output += ["", "Flags:", *[f"- {flag}" for flag in self.flags]]
         output += [f"Confidence: {self.confidence}"]
         return "\n".join(output)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"result": self.result, "matched_series": self.series, "matched_game": self.game, "evidence": self.evidence, "source": self.source, "confidence": self.confidence, "note": self.note}
+        return {"result": self.result, "matched_series": self.series, "matched_game": self.game, "evidence": self.evidence, "source": self.source, "confidence": self.confidence, "note": self.note, "flags": self.flags}

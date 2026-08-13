@@ -35,6 +35,9 @@ Use a different database by placing `--db` before the command:
 - Elder Dragon is excluded from elemental-dragon questions.
 - Final KDA does not prove a quadra or pentakill. Without explicit multi-kill evidence, the result is `UNKNOWN`.
 - A multi-game series without an explicitly identified game returns `AMBIGUOUS` rather than silently selecting one.
+- The resolver returns `FLAGGED` with a machine-readable `flags` value for a canceled unplayed series, an explicit tie, or a delayed/postponed series that remains winnerless more than seven days after `scheduled_date` (or `match_date`).
+
+For schedule-state inputs, include an optional `series.status` (`canceled`, `tied`, `delayed`, or `postponed`) and `series.scheduled_date` in the normalized JSON. `scheduled_date` takes precedence over `match_date`.
 
 ## Supported questions
 

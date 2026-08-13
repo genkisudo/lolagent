@@ -40,15 +40,20 @@ def ingest_json(path: str, db_path: str, raw_root: str = "data/raw", force: bool
         con.execute("DELETE FROM source_snapshots WHERE source_key = ?", [key])
     con.execute("DELETE FROM series WHERE series_id = ?", [series["id"]])
     con.execute("INSERT INTO source_snapshots(source_key, source, source_url, raw_path) VALUES (?, ?, ?, ?)", [key, source, document.get("source_url"), str(raw_destination)])
-    con.execute("INSERT INTO series VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [series["id"], series["team_a"], series["team_b"], series.get("competition"), series.get("match_date"), series.get("winner"), source, document.get("source_url")])
+    scheduled_date = series.get("scheduled_date", series.get("match_date"))
+    con.execute("""INSERT INTO series
+        (series_id, team_a, team_b, competition, match_date, winner, source, source_url, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        [series["id"], series["team_a"], series["team_b"], series.get("competition"), scheduled_date,
+         series.get("winner"), source, document.get("source_url"), series.get("status")])
     for game in document.get("games", []):
         con.execute("""INSERT INTO games
             (game_id, series_id, game_number, winner, team_a_kills, team_b_kills,
              duration_seconds, completed, source, source_url, timeline_complete)
-            VALUES (?, ?, ?, ?, ?, ?, ?, true, ?, ?, ?)""",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [game["id"], series["id"], game["number"], game.get("winner"),
              game.get("team_a_kills"), game.get("team_b_kills"), game.get("duration_seconds"),
-             source, game.get("source_url", document.get("source_url")), game.get("timeline_complete", False)])
+             game.get("completed", True), source, game.get("source_url", document.get("source_url")), game.get("timeline_complete", False)])
         for index, event in enumerate(game.get("events", [])):
             event_type = event["event_type"].upper()
             objective = (event.get("objective_type") or "").upper()

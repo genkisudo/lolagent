@@ -6,7 +6,8 @@ import duckdb
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS series (
  series_id VARCHAR PRIMARY KEY, team_a VARCHAR NOT NULL, team_b VARCHAR NOT NULL,
- competition VARCHAR, match_date DATE, winner VARCHAR, source VARCHAR, source_url VARCHAR);
+ competition VARCHAR, match_date DATE, winner VARCHAR, source VARCHAR, source_url VARCHAR,
+ status VARCHAR);
 CREATE TABLE IF NOT EXISTS games (
  game_id VARCHAR PRIMARY KEY, series_id VARCHAR NOT NULL, game_number INTEGER NOT NULL,
  winner VARCHAR, team_a_kills INTEGER, team_b_kills INTEGER, duration_seconds INTEGER,
@@ -44,4 +45,7 @@ def connect(path: str):
     columns = {row[0] for row in connection.execute("DESCRIBE games").fetchall()}
     if "timeline_complete" not in columns:
         connection.execute("ALTER TABLE games ADD COLUMN timeline_complete BOOLEAN DEFAULT false")
+    series_columns = {row[0] for row in connection.execute("DESCRIBE series").fetchall()}
+    if "status" not in series_columns:
+        connection.execute("ALTER TABLE series ADD COLUMN status VARCHAR")
     return connection
